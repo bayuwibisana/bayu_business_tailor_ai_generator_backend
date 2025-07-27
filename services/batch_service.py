@@ -49,15 +49,15 @@ class BatchGenerationService:
                     
                     # Generate caption and image concurrently
                     print(f"Generating content for post {index + 1}...")
-                    # caption_task = openai_service.generate_caption(post_data)
-                    # image_task = openai_service.generate_image(post_data)
+                    caption_task = openai_service.generate_caption(post_data)
+                    image_task = openai_service.generate_image(post_data)
                     
                     # # Wait for both to complete
-                    # caption, image_url = await asyncio.gather(caption_task, image_task)
+                    caption, image_url = await asyncio.gather(caption_task, image_task)
                     
                     # # Update post with results in single transaction
-                    # post.generated_caption = caption
-                    # post.generated_image_url = image_url
+                    post.generated_caption = caption
+                    post.generated_image_url = image_url
                     await asyncio.sleep(10)
 
                     post.status = 'completed'
