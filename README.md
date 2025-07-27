@@ -23,7 +23,7 @@ git clone <your-repository-url> .
 ### 2. Setup Virtual Environment
 ```bash
 # Create virtual environment
-python3 -m venv venv
+python -m venv venv
 
 # Activate the virtual environment
 source venv/bin/activate  # On Windows: venv\Scripts\activate
