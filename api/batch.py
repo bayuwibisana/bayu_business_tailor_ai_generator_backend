@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Dict, List
+from typing import Dict, List, Optional
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -91,6 +91,7 @@ async def get_batches_by_campaign(
     campaign_id: str,
     skip: int = 0,
     limit: int = 100,
+    status: Optional[str] = None,
     db: Session = Depends(get_db),
     username: str = Depends(auth.get_current_user)
 ):
@@ -98,11 +99,18 @@ async def get_batches_by_campaign(
     Get all batch jobs for a specific campaign
     """
     try:
-        # Get all batch jobs for this campaign and user
-        batch_jobs = db.query(BatchJob).filter(
+        # Build query with filters
+        query = db.query(BatchJob).filter(
             BatchJob.campaign_id == campaign_id,
             BatchJob.created_by == username
-        ).order_by(BatchJob.created_at.desc()).offset(skip).limit(limit).all()
+        )
+        
+        # Filter by status if provided
+        if status:
+            query = query.filter(BatchJob.status == status)
+        
+        # Get all batch jobs for this campaign and user
+        batch_jobs = query.order_by(BatchJob.created_at.desc()).offset(skip).limit(limit).all()
         
         return batch_jobs
         

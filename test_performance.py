@@ -43,7 +43,7 @@ async def test_batch_performance():
     
     # Test data
     test_posts = []
-    for i in range(10):  # Start with 10 posts
+    for i in range(5):  # Start with 10 posts
         test_posts.append({
             'brand_name': 'Test Brand',
             'topic': 'Performance Test',

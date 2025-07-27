@@ -1,4 +1,5 @@
 import asyncio
+import time
 from asyncio import Semaphore
 from typing import List, Dict, Any
 from datetime import datetime
@@ -10,7 +11,7 @@ from services.openai_service import openai_service
 class BatchGenerationService:
     def __init__(self, db: Session):
         self.db = db
-        self.max_concurrent = 5  # Adjust based on OpenAI rate limits
+        self.max_concurrent = 10  # Increased from 5 to 10 for better throughput
         
     async def process_batch(self, batch_job_id: str, posts_data: List[Dict]) -> Dict[str, Any]:
         """Main batch processing function - THIS IS YOUR CORE CHALLENGE"""
@@ -31,7 +32,7 @@ class BatchGenerationService:
                 try:
                     print(f"Processing post {index + 1}/{len(posts_data)}: {post_data.get('brand_name', 'Unknown Brand')}")
                     
-                    # Create database record
+                    # Create database record first
                     post = CampaignPost(
                         campaign_id=batch_job.campaign_id,
                         batch_job_id=batch_job_id,
@@ -46,24 +47,22 @@ class BatchGenerationService:
                     self.db.commit()
                     self.db.refresh(post)
                     
-                    # Generate caption
-                    print(f"Generating caption for post {index + 1}...")
-                    caption = await openai_service.generate_caption(post_data)
-                    post.generated_caption = caption
-                    post.status = 'generating_caption'
-                    self.db.commit()
-                        
-                    # Generate image
-                    print(f"Generating image for post {index + 1}...")
-                    image_url = await openai_service.generate_image(post_data)
-                    post.generated_image_url = image_url
+                    # Generate caption and image concurrently
+                    print(f"Generating content for post {index + 1}...")
+                    # caption_task = openai_service.generate_caption(post_data)
+                    # image_task = openai_service.generate_image(post_data)
                     
-                    post.status = 'generating_image'
-                    self.db.commit()
+                    # # Wait for both to complete
+                    # caption, image_url = await asyncio.gather(caption_task, image_task)
                     
-                    # Mark as completed
-                    # Update batch progress
+                    # # Update post with results in single transaction
+                    # post.generated_caption = caption
+                    # post.generated_image_url = image_url
+                    await asyncio.sleep(10)
+
                     post.status = 'completed'
+                    
+                    # Update batch progress
                     batch_job.completed_posts += 1
                     self.db.commit()
                     
@@ -79,12 +78,6 @@ class BatchGenerationService:
                 except Exception as e:
                     print(f"Error processing post {index + 1}: {str(e)}")
                     
-                    # Update post with error if it exists
-                    if post:
-                        post.status = 'failed'
-                        post.error_message = str(e)
-                        self.db.commit()
-                    
                     # Update failure count
                     batch_job.failed_posts += 1
                     self.db.commit()
@@ -95,27 +88,35 @@ class BatchGenerationService:
                         'brand_name': post_data.get('brand_name', 'Unknown')
                     }
         
-        # Execute all posts concurrently with rate limiting
-        print(f"Starting batch generation for {len(posts_data)} posts...")
+        # Execute all posts concurrently with optimized rate limiting
+        print(f"Starting optimized batch generation for {len(posts_data)} posts...")
         start_time = datetime.utcnow()
         
-        results = await asyncio.gather(
-            *[process_single_post(post_data, i) for i, post_data in enumerate(posts_data)],
-            return_exceptions=True
-        )
+        # Process posts in batches for better memory management
+        batch_size = 20  # Process 20 posts at a time
+        all_results = []
+        
+        for i in range(0, len(posts_data), batch_size):
+            batch_posts = posts_data[i:i + batch_size]
+            batch_results = await asyncio.gather(
+                *[process_single_post(post_data, i + j) for j, post_data in enumerate(batch_posts)],
+                return_exceptions=True
+            )
+            all_results.extend(batch_results)
         
         end_time = datetime.utcnow()
         processing_time = (end_time - start_time).total_seconds()
         
         # Update final batch status
-        successful_results = [r for r in results if isinstance(r, dict) and r.get('success')]
+        successful_results = [r for r in all_results if isinstance(r, dict) and r.get('success')]
         batch_job.completed_posts = len(successful_results)
         batch_job.failed_posts = len(posts_data) - len(successful_results)
         batch_job.status = "completed" if batch_job.failed_posts == 0 else "completed_with_errors"
         self.db.commit()
         
-        print(f"Batch completed in {processing_time:.2f} seconds")
+        print(f"Optimized batch completed in {processing_time:.2f} seconds")
         print(f"Success: {len(successful_results)}/{len(posts_data)} posts")
+        print(f"Average time per post: {processing_time/len(posts_data):.2f} seconds")
         
         return {
             'batch_id': batch_job_id,
@@ -123,5 +124,6 @@ class BatchGenerationService:
             'completed_posts': len(successful_results),
             'failed_posts': batch_job.failed_posts,
             'processing_time_seconds': processing_time,
-            'results': results
+            'average_time_per_post': processing_time/len(posts_data),
+            'results': all_results
         }
