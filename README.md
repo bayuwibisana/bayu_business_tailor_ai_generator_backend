@@ -2,6 +2,85 @@
 
 A FastAPI-based backend service for generating AI-powered social media content using OpenAI's GPT and DALL-E APIs. This system allows users to create campaigns, manage content generation in batches, and track progress through a comprehensive API.
 
+
+
+## 📋 Prerequisites
+
+- Python 3.11 or higher
+- PostgreSQL database (with existing schema)
+- OpenAI API key
+- Git (for cloning the repository)
+
+## 🔧 Installation & Setup
+
+### 1. Clone the Repository
+```bash
+mkdir social-media-generator/backend
+cd social-media-generator/backend
+git clone <your-repository-url> .
+```
+
+### 2. Setup Virtual Environment
+```bash
+# Create virtual environment
+python3 -m venv venv
+
+# Activate the virtual environment
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Environment Configuration
+Copy the example environment file and configure your credentials:
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+```
+
+Then edit the `.env` file with your actual credentials:
+
+```env
+# Database Configuration
+DATABASE_URL=postgresql://username:password@localhost:5432/social_media_db
+
+# OpenAI API Configuration
+OPENAI_API_KEY=your-openai-api-key-here
+
+# Security Configuration
+SECRET_KEY=your-secret-key-here
+
+# Optional: Additional Configuration
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+### 5. Database Setup
+
+#### For Existing Database
+The application expects an existing PostgreSQL database with the following schema. Ensure your database matches this structure:
+
+#### Initialize New Database (Optional)
+If starting from scratch:
+```bash
+# Create PostgreSQL database
+createdb social_media_db
+
+# Initialize tables
+python init_db.py
+```
+
+### 6. Start the Application
+```bash
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+The API will be available at: `http://localhost:8000`
+
+
 ## 🚀 Features
 
 ### Core Functionality
@@ -45,74 +124,6 @@ A FastAPI-based backend service for generating AI-powered social media content u
 - **Pydantic**: Data validation and serialization
 - **email-validator**: Email validation for user registration
 
-## 📋 Prerequisites
-
-- Python 3.11 or higher
-- PostgreSQL database (with existing schema)
-- OpenAI API key
-- Git (for cloning the repository)
-
-## 🔧 Installation & Setup
-
-### 1. Clone the Repository
-```bash
-mkdir social-media-generator/backend
-cd social-media-generator/backend
-git clone <your-repository-url> .
-```
-
-### 2. Setup Virtual Environment
-```bash
-# Create virtual environment
-python3 -m venv venv
-
-# Activate the virtual environment
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Environment Configuration
-Create a `.env` file in the backend directory with your credentials:
-
-```env
-# Database Configuration
-DATABASE_URL=postgresql://username:password@localhost:5432/social_media_db
-
-# OpenAI API Configuration
-OPENAI_API_KEY=your-openai-api-key-here
-
-# Security Configuration
-SECRET_KEY=your-secret-key-here
-
-# Optional: Additional Configuration
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
-
-### 5. Database Setup
-
-#### For Existing Database
-The application expects an existing PostgreSQL database with the following schema. Ensure your database matches this structure:
-
-#### Initialize New Database (Optional)
-If starting from scratch:
-```bash
-# Create PostgreSQL database
-createdb social_media_db
-
-# Initialize tables
-python init_db.py
-```
-
-### 6. Start the Application
-```bash
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-The API will be available at: `http://localhost:8000`
 
 ## 📚 API Documentation
 
