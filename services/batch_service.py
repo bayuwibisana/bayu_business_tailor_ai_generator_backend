@@ -58,7 +58,7 @@ class BatchGenerationService:
                     # # Update post with results in single transaction
                     post.generated_caption = caption
                     post.generated_image_url = image_url
-                    await asyncio.sleep(10)
+                    # await asyncio.sleep(10)
 
                     post.status = 'completed'
                     
