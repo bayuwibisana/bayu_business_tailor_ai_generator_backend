@@ -69,9 +69,17 @@ If starting from scratch:
 # Create PostgreSQL database
 createdb social_media_db
 
-# Initialize tables
+# Initialize tables and create default data
 python init_db.py
 ```
+
+**Default Admin Account Created:**
+After running `init_db.py`, a default admin account will be created:
+- **Username**: `admin`
+- **Password**: `admin123`
+- **Email**: `admin@example.com`
+
+You can use this account immediately for testing or create additional users via the registration API.
 
 ### 6. Start the Application
 ```bash
@@ -80,6 +88,27 @@ python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 The API will be available at: `http://localhost:8000`
 
+### 7. Quick Start with Admin Account
+Once the application is running, you can immediately start using the API with the default admin account:
+
+**Login Endpoint**: `POST http://localhost:8000/api/auth/login`
+```json
+{
+  "username": "admin",
+  "password": "admin123"
+}
+```
+
+Or register additional users at: `POST http://localhost:8000/api/auth/register`
+```json
+  {
+    "username": "adminnew",
+    "email": "admin@example.com",
+    "password": "adminnew123",
+    "first_name": "adminnew",
+    "last_name": "test"
+  }
+```
 
 ## 🚀 Features
 
@@ -225,24 +254,32 @@ campaign_posts (
 ## 🎯 Usage Examples
 
 ### 1. User Registration & Authentication
+
+#### Option A: Use Default Admin Account
+You can immediately use the pre-created admin account:
+- **Username**: `admin`
+- **Password**: `admin123`
+- **Email**: `admin@example.com`
+
+#### Option B: Register a New User
 ```bash
-# Register a new user
+# Register a new user (example)
 curl -X POST "http://localhost:8000/api/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "testuser",
-    "email": "test@example.com",
-    "password": "securepassword123",
-    "first_name": "Test",
-    "last_name": "User"
+    "username": "admin",
+    "email": "admin@example.com",
+    "password": "admin123",
+    "first_name": "admin",
+    "last_name": "test"
   }'
 
-# Login and get token
+# Login and get token (using admin account)
 curl -X POST "http://localhost:8000/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "testuser",
-    "password": "securepassword123"
+    "username": "admin",
+    "password": "admin123"
   }'
 
 # Logout (invalidate token)
